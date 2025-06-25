@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Login() {
+function Login({ setIsAuthenticated, setUserName }) {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -11,10 +11,14 @@ function Login() {
   const Auth = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/login", {
+      const response = await axios.post("http://localhost:5000/login", {
         user_name: name,
         password: password,
       });
+      localStorage.setItem("token", response.data.accessToken);
+      localStorage.setItem("user", response.data.user);
+      setIsAuthenticated(true);
+      setUserName(response.data.user);
       navigate("/");
     } catch (error) {
       if (error.response) {
@@ -27,7 +31,7 @@ function Login() {
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start ">
       <h1 className="text-3xl font-[300] font-lexend">Login</h1>
 
-      <form  onSubmit={Auth} action="" className="flex-col flex">
+      <form onSubmit={Auth} action="" className="flex-col flex">
         <p>{msg}</p>
         <label className="input validator w-100 font-lexend text-xs mt-6 mb-4">
           <svg

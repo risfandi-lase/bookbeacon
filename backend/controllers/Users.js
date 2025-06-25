@@ -59,7 +59,7 @@ export const Login = async(req, res) => {
             maxAge: 24 * 60 * 60 * 1000
             // secure: true
         })
-        res.json({accessToken})
+        res.json({accessToken, user: user_name})
     } catch (error) {
         res.status(404).json({msg:"User not found"})
     }

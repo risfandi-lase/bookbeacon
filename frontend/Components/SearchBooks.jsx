@@ -50,7 +50,7 @@ function SearchBooks({ onAddBook, setUserName }) {
   /* ---------------------------- JWT refresh ---------------------------- */
   const refreshToken = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/token");
+      const { data } = await axios.get("https://bookbeacon.onrender.com");
       setToken(data.accessToken);
       const decoded = jwtDecode(data.accessToken);
       setName(decoded.user_name);

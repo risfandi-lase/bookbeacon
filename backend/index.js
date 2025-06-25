@@ -16,7 +16,7 @@ try {
   console.error(error);
 }
 
-app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+app.use(cors({ credentials: true, origin: "https://bookbeacon.onrender.com" }));
 
 
 

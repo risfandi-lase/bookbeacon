@@ -1,29 +1,30 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import NavBar       from "../Components/NavBar";
 import Register     from "../Components/Register";
 import SearchBooks  from "../Components/SearchBooks";
 import MyBooks      from "../Components/MyBooks";
-import BookStatus   from "../Components/BookStatus";
 import Login        from "../Components/Login";
 import BookDetails  from "../Components/BookDetails";
 import { Toaster }  from "react-hot-toast";
+import { AuthProvider, useAuth } from "./AuthContext";
 
-function App() {
-  const [myBooks, setMyBooks] = useState([]);
-  const [userName, setUserName] = useState("");
+function AppContent() {
+  const { user, loading, isAuthenticated } = useAuth();
 
-  const handleAddBook = (book) => {
-    if (!myBooks.some((b) => b.id === book.id)) {
-      setMyBooks((prev) => [...prev, book]);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="loading loading-spinner loading-lg"></div>
+      </div>
+    );
+  }
 
   return (
-    <div data-theme="light" className="flex min-h-screen">
+    <div data-theme="light" className="flex bg-base-200 min-h-screen pr-150">
       <Router>
-        <NavBar userName={userName} />
+        <NavBar userName={user?.user_name} />
         <Toaster />
 
         <Routes>
@@ -31,34 +32,49 @@ function App() {
           <Route
             path="/"
             element={
-              <MyBooks
-                books={myBooks}
-                setBooks={setMyBooks}   /* ← so we can delete */
-              />
+              isAuthenticated ? (
+                <MyBooks />
+              ) : (
+                <Login />
+              )
             }
           />
 
-          {/* New route ↓↓↓ */}
+          {/* Book Details route */}
           <Route
             path="/book/:id"
-            element={<BookDetails books={myBooks} />}
+            element={
+              isAuthenticated ? (
+                <BookDetails />
+              ) : (
+                <Login />
+              )
+            }
           />
 
           <Route
             path="/search-books"
             element={
-              <SearchBooks
-                onAddBook={handleAddBook}
-                setUserName={setUserName}
-              />
+              isAuthenticated ? (
+                <SearchBooks />
+              ) : (
+                <Login />
+              )
             }
           />
-          <Route path="/book-status" element={<BookStatus />} />
           <Route path="/register"   element={<Register />} />
           <Route path="/login"      element={<Login />} />
         </Routes>
       </Router>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

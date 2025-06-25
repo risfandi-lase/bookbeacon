@@ -1,34 +1,41 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../src/AuthContext";
 
 function Login() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
   const Auth = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMsg("");
+    
     try {
-      await axios.post("http://localhost:5000/login", {
-        user_name: name,
-        password: password,
-      });
-      navigate("/");
-    } catch (error) {
-      if (error.response) {
-        setMsg(error.response.data.msg);
+      const result = await login(name, password);
+      
+      if (result.success) {
+        navigate("/");
+      } else {
+        setMsg(result.message);
       }
+    } catch (error) {
+      setMsg("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start ">
+    <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start">
       <h1 className="text-3xl font-[300] font-lexend">Login</h1>
 
-      <form  onSubmit={Auth} action="" className="flex-col flex">
-        <p>{msg}</p>
+      <form onSubmit={Auth} action="" className="flex-col flex">
+        {msg && <p className="text-error text-sm mt-2">{msg}</p>}
         <label className="input validator w-100 font-lexend text-xs mt-6 mb-4">
           <svg
             className="h-[1em] opacity-50"
@@ -54,6 +61,7 @@ function Login() {
             placeholder="Username"
             pattern="[A-Za-z][A-Za-z0-9\-]*"
             maxLength="30"
+            disabled={loading}
           />
         </label>
 
@@ -80,10 +88,15 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Password"
+            disabled={loading}
           />
         </label>
-        <button className="btn btn-neutral btn-outline opacity-30 w-24 mt-6 font-lexend text-xs font-[500] mx-auto">
-          Login
+        <button 
+          type="submit"
+          className={`btn btn-neutral btn-outline w-24 mt-6 font-lexend text-xs font-[500] mx-auto ${loading ? 'loading' : ''}`}
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>

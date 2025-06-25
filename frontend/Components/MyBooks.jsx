@@ -1,148 +1,377 @@
 import React from "react";
-import it from "../src/assets/it.png";
-import viving from "../src/assets/viving.png";
-import celebrate from "../src/assets/celebrate.png";
-import feel from "../src/assets/feel.png";
-import amillion from "../src/assets/amillion.png";
-import dontcall from "../src/assets/dontcall.png";
-import littlea from "../src/assets/little.png";
-import thesecret from "../src/assets/thesecret.png";
-import illbe from "../src/assets/illbe.png";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
-
-const books = [
-  { id: 1, image: it, title: "It", author: "Stephen King" },
-  { id: 2, image: viving, title: "Viving", author: "Amelia" },
-  {
-    id: 3,
-    image: celebrate,
-    title: "Celebrate Forest",
-    author: "Angel Dimaria",
-  },
-  { id: 4, image: feel, title: "Feel The Nature", author: "Jack A Hugo" },
-  {
-    id: 5,
-    image: amillion,
-    title: "A Million To One",
-    author: "Tony Faggioli",
-  },
-  { id: 6, image: littlea, title: "Little Gods", author: "Meng Jin" },
-  {
-    id: 7,
-    image: dontcall,
-    title: "Don't Call A Wolf",
-    author: "Aleksandra Ross",
-  },
-  {
-    id: 8,
-    image: thesecret,
-    title: "The Secret Of Life",
-    author: "Lottie Reinfeld",
-  },
-  { id: 9, image: illbe, title: "I'll Be Right Here", author: "Amy Bloom" },
-];
+import { useAuth } from "../src/AuthContext";
 
 export default function MyBooks() {
-   const navigate = useNavigate();
-  // what do we want to sort by?  default = 'title'
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  // What do we want to sort by? default = 'title'
   const [orderBy, setOrderBy] = useState("title");
-  const [books, setBooks] = useState([
-    { id: 1, image: it, title: "It", author: "Stephen King" },
-    { id: 2, image: viving, title: "Viving", author: "Amelia" },
-    {
-      id: 3,
-      image: celebrate,
-      title: "Celebrate Forest",
-      author: "Angel Dimaria",
-    },
-    { id: 4, image: feel, title: "Feel The Nature", author: "Jack A Hugo" },
-    {
-      id: 5,
-      image: amillion,
-      title: "A Million To One",
-      author: "Tony Faggioli",
-    },
-    { id: 6, image: littlea, title: "Little Gods", author: "Meng Jin" },
-    {
-      id: 7,
-      image: dontcall,
-      title: "Don't Call A Wolf",
-      author: "Aleksandra Ross",
-    },
-    {
-      id: 8,
-      image: thesecret,
-      title: "The Secret Of Life",
-      author: "Lottie Reinfeld",
-    },
-    { id: 9, image: illbe, title: "I'll Be Right Here", author: "Amy Bloom" },
-  ]);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState("all"); // "all", "status-grouped", or specific status
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
-  // helper that returns a *new* sorted array
+  // Load books from localStorage on component mount
+  useEffect(() => {
+    const loadFavoriteBooks = () => {
+      try {
+        const userId = user?.userId || 'default';
+        const storageKey = `favoriteBooks_${userId}`;
+        const savedBooks = localStorage.getItem(storageKey);
+        
+        if (savedBooks) {
+          const parsedBooks = JSON.parse(savedBooks);
+          setBooks(parsedBooks);
+        }
+      } catch (error) {
+        console.error('Error loading favorite books:', error);
+        toast.error('Failed to load your favorite books');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFavoriteBooks();
+  }, [user]);
+
+  // Save books to localStorage whenever books array changes
+  useEffect(() => {
+    if (!loading && user) {
+      try {
+        const userId = user.userId || 'default';
+        const storageKey = `favoriteBooks_${userId}`;
+        localStorage.setItem(storageKey, JSON.stringify(books));
+      } catch (error) {
+        console.error('Error saving favorite books:', error);
+      }
+    }
+  }, [books, loading, user]);
+
+  // Reading status options for filtering
+  const statusOptions = [
+    { value: "all", label: "All Books", emoji: "📚" },
+    { value: "want-to-read", label: "Want to Read", emoji: "📚" },
+    { value: "currently-reading", label: "Currently Reading", emoji: "📖" },
+    { value: "completed", label: "Completed", emoji: "✅" },
+    { value: "on-hold", label: "On Hold", emoji: "⏸️" },
+    { value: "dropped", label: "Dropped", emoji: "❌" },
+    { value: "unset", label: "No Status Set", emoji: "⚪" }
+  ];
+
+  // Filter books by status
+  const filteredBooks = useMemo(() => {
+    if (selectedStatus === "all") return books;
+    
+    if (selectedStatus === "unset") {
+      return books.filter(book => !book.readingStatus);
+    }
+    
+    return books.filter(book => book.readingStatus === selectedStatus);
+  }, [books, selectedStatus]);
+
+  // Helper that returns a *new* sorted array
   const sortedBooks = useMemo(() => {
-    return [...books].sort((a, b) => {
-      if (orderBy === "id") {
-        return a.id - b.id; // numeric compare
+    let booksToSort = viewMode === "status-grouped" ? books : filteredBooks;
+    
+    return [...booksToSort].sort((a, b) => {
+      if (orderBy === "dateAdded") {
+        return new Date(b.dateAdded) - new Date(a.dateAdded); // newest first
+      } else if (orderBy === "title") {
+        return (a.volumeInfo?.title || '').localeCompare(b.volumeInfo?.title || '');
+      } else if (orderBy === "author") {
+        const aAuthor = a.volumeInfo?.authors?.[0] || '';
+        const bAuthor = b.volumeInfo?.authors?.[0] || '';
+        return aAuthor.localeCompare(bAuthor);
+      } else if (orderBy === "rating") {
+        return (b.rating || 0) - (a.rating || 0); // highest first
+      } else if (orderBy === "lastUpdated") {
+        return new Date(b.lastUpdated || 0) - new Date(a.lastUpdated || 0); // newest first
+      }
+      return 0;
+    });
+  }, [orderBy, books, filteredBooks, viewMode]);
+
+  // Group books by status for grouped view
+  const groupedBooks = useMemo(() => {
+    const grouped = {};
+    statusOptions.forEach(status => {
+      if (status.value === "all") return;
+      
+      if (status.value === "unset") {
+        grouped[status.value] = books.filter(book => !book.readingStatus);
       } else {
-        return a[orderBy].localeCompare(b[orderBy]); // string compare
+        grouped[status.value] = books.filter(book => book.readingStatus === status.value);
       }
     });
-  }, [orderBy, books]);
+    return grouped;
+  }, [books]);
 
-  const handleDelete = (id) => {
-    setBooks((prev) => prev.filter((b) => b.id !== id));
-    const deleted = books.find((b) => b.id === id);
-    toast.success(`"${deleted.title}" has been deleted`);
+  const handleDelete = (bookId) => {
+    const bookToDelete = books.find((b) => b.id === bookId);
+    setBooks((prev) => prev.filter((b) => b.id !== bookId));
+    
+    if (bookToDelete) {
+      toast.success(`"${bookToDelete.volumeInfo?.title || 'Book'}" has been removed from your favorites`);
+    }
   };
 
+  const handleBookClick = (book) => {
+    // Navigate to book details with the book data
+    navigate(`/book/${book.id}`, { state: { book } });
+  };
+
+  // Get statistics
+  const getStatusStats = () => {
+    const stats = {};
+    statusOptions.forEach(status => {
+      if (status.value === "all") return;
+      
+      if (status.value === "unset") {
+        stats[status.value] = books.filter(book => !book.readingStatus).length;
+      } else {
+        stats[status.value] = books.filter(book => book.readingStatus === status.value).length;
+      }
+    });
+    return stats;
+  };
+
+  const stats = getStatusStats();
+
+  // Render book card component
+  const BookCard = ({ book }) => (
+    <div key={book.id} className="border w-40  border-gray-300 relative  overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      {/* Status Badge */}
+      {book.readingStatus && (
+        <div className="absolute top-2 left-2 z-10">
+          <span className="badge badge-sm bg-blue-100 text-blue-800 border-blue-200 text-xs">
+            {statusOptions.find(opt => opt.value === book.readingStatus)?.emoji || "📚"}
+          </span>
+        </div>
+      )}
+      
+      {/* Rating Badge */}
+      {book.rating && book.rating > 0 && (
+        <div className="absolute top-2 left-2 z-10" style={{ marginTop: book.readingStatus ? '24px' : '0' }}>
+          <span className="badge badge-sm bg-orange-100 text-orange-800 border-orange-200 text-xs">
+            ⭐ {book.rating}
+          </span>
+        </div>
+      )}
+
+      <img
+        src={book.volumeInfo?.imageLinks?.thumbnail || book.volumeInfo?.imageLinks?.smallThumbnail || "/fallback-image.jpg"}
+        alt={book.volumeInfo?.title || 'Book cover'}
+        className="h-60 w-full object-cover cursor-pointer hover:scale-105 transition-transform"
+        onClick={() => handleBookClick(book)}
+        onError={(e) => {
+          e.target.src = "/fallback-image.jpg";
+        }}
+      />
+      <div className="p-3">
+        <div 
+          className="font-bold text-sm line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors"
+          onClick={() => handleBookClick(book)}
+          title={book.volumeInfo?.title}
+        >
+          {book.volumeInfo?.title || 'Unknown Title'}
+        </div>
+        <p className="font-light text-xs text-gray-600 mt-1 line-clamp-1" title={book.volumeInfo?.authors?.join(', ')}>
+          {book.volumeInfo?.authors?.join(', ') || 'Unknown Author'}
+        </p>
+        
+        
+      </div>
+
+      <div
+        onClick={() => handleDelete(book.id)}
+        className="absolute top-2 right-2 bg-white rounded-full p-1 text-red-400 cursor-pointer hover:scale-110 hover:bg-red-50 transition-all shadow-sm"
+        title="Remove from favorites"
+      >
+        <RiDeleteBin6Line className="text-lg" />
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-center justify-center min-h-96">
+        <div className="loading loading-spinner loading-lg"></div>
+        <p className="mt-4 font-outfit">Loading your books...</p>
+      </div>
+    );
+  }
+
   return (
-    
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start">
       <h3 className="text-3xl font-[300] mb-6 font-lexend">My Books</h3>
 
-      {/* simple select box to choose the sort key */}
-      <p className="font-outfit ml-1 text-sm">Sort by:</p>
-      <select
-        defaultValue="Sort by"
-        className="select mb-10 font-outfit w-25"
-        value={orderBy}
-        onChange={(e) => setOrderBy(e.target.value)}
-      >
-        <option value="id">Added</option>
-        <option value="title">Title</option>
-      </select>
+      {books.length === 0 ? (
+        <div className="flex flex-col items-center justify-center w-full min-h-96 text-center">
+          <div className="text-6xl mb-4">📚</div>
+          <h4 className="text-xl font-lexend mb-2">No books yet!</h4>
+          <p className="font-outfit text-gray-600 mb-4">
+            Start building your personal library by searching for books and adding them to your favorites.
+          </p>
+          <button 
+            className="btn btn-primary font-outfit"
+            onClick={() => navigate('/search-books')}
+          >
+            Search Books
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 w-full">
+            {statusOptions.map((status) => {
+              if (status.value === "all") return null;
+              const count = stats[status.value] || 0;
+              return (
+                <div 
+                  key={status.value}
+                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                    selectedStatus === status.value 
+                      ? 'bg-blue-100 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:bg-gray-50'
+                  }`}
+                  onClick={() => {
+                    setSelectedStatus(status.value);
+                    setViewMode("filter");
+                  }}
+                >
+                  <div className="text-2xl mb-1">{status.emoji}</div>
+                  <div className="text-lg font-bold">{count}</div>
+                  <div className="text-xs text-gray-600">{status.label}</div>
+                </div>
+              );
+            })}
+          </div>
 
-
-      <div className="grid grid-cols-5 gap-8 font-outfit">
-        {sortedBooks.map((book) => (
-          <div key={book.id} className="border border-gray-300 relative">
-            <img
-              src={book.image}
-              className="h-60 w-40 cursor-pointer hover:scale-104 transition "
-              onClick={() =>
-                navigate(`/book/${book.id}`, { state: { book } })
-              }
-            />
-            <div className="font-bold whitespace-normal break-words p-2">
-              {book.title}
+          {/* Controls */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 w-full">
+            {/* View Mode Toggle */}
+            <div className="flex gap-2">
+              <button
+                className={`btn btn-sm ${viewMode === "all" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => {
+                  setViewMode("all");
+                  setSelectedStatus("all");
+                }}
+              >
+                All Books
+              </button>
+              <button
+                className={`btn btn-sm ${selectedStatus !== "all" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setViewMode("filter")}
+              >
+                Filter View
+              </button>
+              <button
+                className={`btn btn-sm ${viewMode === "status-grouped" ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setViewMode("status-grouped")}
+              >
+                Group by Status
+              </button>
             </div>
-            <p className="mb-18 font-light text-sm p-2">{book.author}</p>
 
-            <div
-              onClick={() => {
-                handleDelete(book.id);
-              }}
-              className="absolute bottom-2 right-2 text-2xl text-red-400 cursor-pointer hover:scale-110 transition "
-            >
-              <RiDeleteBin6Line />
+            {/* Status Filter - only show when in filter mode */}
+            {viewMode === "filter" && (
+              <select
+                className="select select-bordered select-sm font-outfit min-w-48"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.emoji} {option.label} ({stats[option.value] || (option.value === "all" ? books.length : 0)})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Sort controls */}
+            <div className="flex items-center gap-2">
+              <span className="font-outfit text-sm">Sort by:</span>
+              <select
+                className="select select-bordered select-sm font-outfit"
+                value={orderBy}
+                onChange={(e) => setOrderBy(e.target.value)}
+              >
+                <option value="dateAdded">Recently Added</option>
+                <option value="title">Title</option>
+                <option value="author">Author</option>
+                <option value="rating">Rating</option>
+                <option value="lastUpdated">Last Updated</option>
+              </select>
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Books count */}
+          <p className="font-outfit text-sm text-gray-600 mb-4">
+            {viewMode === "status-grouped" 
+              ? `${books.length} book${books.length !== 1 ? 's' : ''} in your library`
+              : `${filteredBooks.length} book${filteredBooks.length !== 1 ? 's' : ''} ${selectedStatus !== "all" ? `in ${statusOptions.find(opt => opt.value === selectedStatus)?.label}` : 'in your library'}`
+            }
+          </p>
+
+          {/* Books Display */}
+          {viewMode === "status-grouped" ? (
+            /* Grouped View */
+            <div className="w-full space-y-8">
+              {statusOptions.map((status) => {
+                if (status.value === "all" || !groupedBooks[status.value]?.length) return null;
+                
+                return (
+                  <div key={status.value}>
+                    <h4 className="text-xl font-semibold mb-4 font-lexend flex items-center gap-2">
+                      <span className="text-2xl">{status.emoji}</span>
+                      {status.label} ({groupedBooks[status.value].length})
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 font-outfit">
+                      {groupedBooks[status.value].map((book) => (
+                        <BookCard key={book.id} book={book} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Regular Grid View */
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 font-outfit w-full">
+              {sortedBooks.map((book) => (
+                <BookCard key={book.id} book={book} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty State for Filtered View */}
+          {viewMode === "filter" && filteredBooks.length === 0 && selectedStatus !== "all" && (
+            <div className="flex flex-col items-center justify-center w-full min-h-96 text-center">
+              <div className="text-6xl mb-4">
+                {statusOptions.find(opt => opt.value === selectedStatus)?.emoji || "📚"}
+              </div>
+              <h4 className="text-xl font-lexend mb-2">
+                No books in "{statusOptions.find(opt => opt.value === selectedStatus)?.label}"
+              </h4>
+              <p className="font-outfit text-gray-600 mb-4">
+                Books you mark with this status will appear here.
+              </p>
+              <button 
+                className="btn btn-primary font-outfit"
+                onClick={() => setSelectedStatus("all")}
+              >
+                View All Books
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

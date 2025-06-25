@@ -99,7 +99,7 @@ export default function MyBooks() {
   // Group books by status for grouped view
   const groupedBooks = useMemo(() => {
     const grouped = {};
-    statusOptions.forEach(status => {j
+    statusOptions.forEach(status => {
       if (status.value === "all") return;
       
       if (status.value === "unset") {

@@ -9,41 +9,30 @@ import littlea from "../src/assets/little.png";
 import thesecret from "../src/assets/thesecret.png";
 import illbe from "../src/assets/illbe.png";
 
-
-
 function BookStatus() {
   return (
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start font-lexend ">
       {" "}
       <p className="text-3xl font-[300] mb-7 font-lexend">BookStatus</p>
-
-    <div className="w-40 mb-10 flex gap-4">
-      <p>Completed</p>
-  <img src={littlea} alt="" className="shadow-lg shadow-black/50" />
-  <img src={illbe} alt="" className="shadow-lg shadow-black/50" />
-  <img src={it} alt="" className="shadow-lg shadow-black/50" />
-  <img src={feel} alt="" className="shadow-lg shadow-black/50" />
-</div>
-
-
-      <div>
-        <p>Reading</p>
-                <div className="w-40 shadow-lg shadow-black/50 mb-10">
-          <img src={littlea} alt="" />
-        </div>
-
+      <p className="mb-4 text-xl">Completed</p>
+      <div className="w-40 mb-10 flex gap-4">
+        <img src={littlea} alt="" className="shadow-lg shadow-black/50" />
+        <img src={illbe} alt="" className="shadow-lg shadow-black/50" />
       </div>
-
+      <p className="mb-4 mt-4 text-xl">Reading</p>
       <div>
-        <p>On Hold</p>
-                <div className="w-40 shadow-lg shadow-black/50 mb-10">
-          <img src={littlea} alt="" />
+        <div className="w-40 shadow-lg shadow-black/50 mb-10">
+          <img src={viving} alt="" />
         </div>
-
       </div>
-
-
-
+      <p className="mb-4 mt-4 text-xl">On Hold</p>
+      <div>
+        <div className="w-40 flex gap-4">
+          <img src={celebrate} alt="" className=" shadow-lg shadow-black/50 mb-10" />
+          <img src={thesecret} alt=""  className=" shadow-lg shadow-black/50 mb-10" />
+          <img src={it} alt=""  className=" shadow-lg shadow-black/50 mb-10" />
+        </div>
+      </div>
     </div>
   );
 }

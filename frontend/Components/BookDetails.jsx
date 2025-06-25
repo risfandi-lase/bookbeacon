@@ -88,8 +88,18 @@ function BookDetails({ books }) {
 
           <fieldset className="fieldset font-lexend mt-5 text-sm">
             <legend className="fieldset-legend">Comment</legend>
-            <textarea className="textarea h-24 text-xs" placeholder="Your text here.."></textarea>
+            <textarea
+              className="textarea h-24 text-xs"
+              placeholder="Your text here.."
+            ></textarea>
           </fieldset>
+
+          <button
+            onClick={() => navigate(-1)}
+            className="btn btn-sm top-4 left-4 font-lexendbtn btn-neutral btn-outline opacity-30 w-24 mt-6 font-lexend text-xs font-[500]"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

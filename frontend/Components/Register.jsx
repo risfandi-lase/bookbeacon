@@ -47,11 +47,12 @@ function Register() {
             </g>
           </svg>
           <input
+          className="ml-2"
             value={name}
             onChange={(e) => setName(e.target.value)}
             type="text"
             required
-            placeholder="Username (without space)"
+            placeholder="Username "
             pattern="[A-Za-z][A-Za-z0-9\-]*"
             maxLength="30"
           />

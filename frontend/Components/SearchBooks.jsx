@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import Image from "../src/assets/img.png";
 import { FaCirclePlus } from "react-icons/fa6";
+import toast from "react-hot-toast";
+
 
 function SearchBooks({ onAddBook, setUserName }) {
   const [name, setName] = useState("");
@@ -11,8 +13,9 @@ function SearchBooks({ onAddBook, setUserName }) {
   const [expire, setExpire] = useState("");
   const [search, setSearch] = useState("");
   const [books, setBooks] = useState([]); // <-- NEW
-   const [hasSearched, setHasSearched] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     refreshToken();
@@ -24,7 +27,7 @@ function SearchBooks({ onAddBook, setUserName }) {
     // avoid empty queries
     if (!search.trim()) return;
 
-      setHasSearched(true);
+    setHasSearched(true);
 
     try {
       // use ONE style: async/await
@@ -54,7 +57,7 @@ function SearchBooks({ onAddBook, setUserName }) {
       setToken(data.accessToken);
       const decoded = jwtDecode(data.accessToken);
       setName(decoded.user_name);
-       setUserName(decoded.user_name)
+      setUserName(decoded.user_name);
       setExpire(decoded.exp);
     } catch (err) {
       if (err.response) navigate("/login");
@@ -64,10 +67,10 @@ function SearchBooks({ onAddBook, setUserName }) {
   /* ----------------------------- RENDER ----------------------------- */
   return (
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start ">
-      <p className="text-3xl font-[300] font-lexend">Search Books</p>
+      <p className="text-3xl font-[300] mb-7 font-lexend">Search Books</p>
 
       <form
-      className="flex gap-2"
+        className="flex gap-2"
         action=""
         onSubmit={(e) => {
           e.preventDefault();
@@ -92,6 +95,7 @@ function SearchBooks({ onAddBook, setUserName }) {
             </g>
           </svg>
           <input
+            className="font-lexend"
             type="search"
             placeholder="Search a book…"
             value={search}
@@ -102,15 +106,13 @@ function SearchBooks({ onAddBook, setUserName }) {
         <button className="btn btn-neutral btn-outline opacity-30 w-24 font-lexend text-xs font-[500] mx-auto">
           Search
         </button>
-        
       </form>
 
       {hasSearched && (
-        <p className="mb-4 mt-8 font-outfit" >
+        <p className="mb-4 mt-8 font-outfit">
           Search results for "<strong>{search}</strong>"
         </p>
       )}
-
 
       {/* Results */}
       <div className="grid grid-cols-5 gap-8 font-outfit ">
@@ -121,7 +123,7 @@ function SearchBooks({ onAddBook, setUserName }) {
                 book.volumeInfo.imageLinks?.thumbnail || "/fallback-image.jpg"
               }
               alt={book.volumeInfo.title}
-              className="h-60 mb-2 w-full"
+              className="h-60 mb-2 w-full hover:scale-103 transition"
             />
             <div className="flex flex-col gap-2  p-2 ">
               <li className="font-bold whitespace-normal break-words ">
@@ -132,8 +134,11 @@ function SearchBooks({ onAddBook, setUserName }) {
               </p>
             </div>
             <div
-              className="absolute bottom-2 right-2 text-gray-600 text-2xl cursor-pointer"
-              onClick={() => onAddBook(book)}
+              className="absolute bottom-2 right-2 text-gray-600 text-2xl cursor-pointer hover:scale-110 transition"
+              onClick={() => {
+                onAddBook(book);
+              toast.success(`"${book.volumeInfo.title}" added to my books`); 
+              }}
             >
               <FaCirclePlus />
             </div>

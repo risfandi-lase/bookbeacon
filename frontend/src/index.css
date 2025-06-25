@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: all;
+}
+@theme {
+  --font-outfit: Outfit, sans-serif;
+  --font-lexend: Lexend Exa, sans-serif;
+}

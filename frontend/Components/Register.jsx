@@ -12,7 +12,7 @@ function Register() {
   const Register = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://bookbeacon.onrender.com", {
+      await axios.post("https://bookbeacon.onrender.com/register", {
         user_name: name,
         password: password,
       });

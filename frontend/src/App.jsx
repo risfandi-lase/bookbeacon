@@ -21,14 +21,19 @@ function AppContent() {
     );
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsAuthenticated(false);
+    setUserName("");
+  };
+
   return (
     <div data-theme="light" className="flex bg-base-200 min-h-screen pr-150">
       <Router>
         <NavBar userName={user?.user_name} />
         <Toaster />
-
         <Routes>
-          {/* Home / shelf */}
           <Route
             path="/"
             element={

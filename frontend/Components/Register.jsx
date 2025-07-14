@@ -24,6 +24,8 @@ function Register() {
     }
   };
 
+  
+
   return (
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start ">
       <h1 className="text-3xl font-[300] font-lexend">Register</h1>

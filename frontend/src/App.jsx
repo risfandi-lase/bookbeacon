@@ -29,7 +29,7 @@ function AppContent() {
   };
 
   return (
-    <div data-theme="light" className="flex bg-base-200 min-h-screen pr-150">
+    <div data-theme="cupcake" className="flex bg-base-200 min-h-screen">
       <Router>
         <NavBar userName={user?.user_name} />
         <Toaster />

@@ -25,16 +25,16 @@ function SearchBooks() {
   useEffect(() => {
     const loadFavoriteBooks = () => {
       try {
-        const userId = user?.userId || 'default';
+        const userId = user?.userId || "default";
         const storageKey = `favoriteBooks_${userId}`;
         const savedBooks = localStorage.getItem(storageKey);
-        
+
         if (savedBooks) {
           const parsedBooks = JSON.parse(savedBooks);
           setFavoriteBooks(parsedBooks);
         }
       } catch (error) {
-        console.error('Error loading favorite books:', error);
+        console.error("Error loading favorite books:", error);
       }
     };
 
@@ -45,7 +45,7 @@ function SearchBooks() {
 
   // Check if a book is already in favorites
   const isBookInFavorites = (bookId) => {
-    return favoriteBooks.some(book => book.id === bookId);
+    return favoriteBooks.some((book) => book.id === bookId);
   };
 
   // Add book to favorites
@@ -56,27 +56,27 @@ function SearchBooks() {
     }
 
     try {
-      const userId = user?.userId || 'default';
+      const userId = user?.userId || "default";
       const storageKey = `favoriteBooks_${userId}`;
-      
+
       // Add dateAdded timestamp to the book
       const bookWithDate = {
         ...book,
-        dateAdded: new Date().toISOString()
+        dateAdded: new Date().toISOString(),
       };
-      
+
       const updatedFavorites = [...favoriteBooks, bookWithDate];
-      
+
       // Update localStorage
       localStorage.setItem(storageKey, JSON.stringify(updatedFavorites));
-      
+
       // Update local state
       setFavoriteBooks(updatedFavorites);
-      
+
       toast.success(`"${book.volumeInfo.title}" added to your favorites`);
     } catch (error) {
-      console.error('Error adding book to favorites:', error);
-      toast.error('Failed to add book to favorites');
+      console.error("Error adding book to favorites:", error);
+      toast.error("Failed to add book to favorites");
     }
   };
 
@@ -116,7 +116,6 @@ function SearchBooks() {
   return (
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start">
       <p className="text-3xl font-[300] mb-7 font-lexend">Search Books</p>
-
       <form
         className="flex gap-2"
         action=""
@@ -152,67 +151,78 @@ function SearchBooks() {
             disabled={loading}
           />
         </label>
-        <button 
+        <button
           type="submit"
-          className={`btn btn-neutral btn-outline w-24 font-lexend text-xs font-[500] mx-auto ${loading ? 'loading' : ''}`}
+          className={`btn btn-primary  w-24 font-lexend text-xs font-[500] mx-auto ${
+            loading ? "loading" : ""
+          }`}
           disabled={loading}
         >
-          {loading ? 'Searching...' : 'Search'}
+          {loading ? "Searching..." : "Search"}
         </button>
       </form>
-
       {hasSearched && !loading && (
         <div className="mt-8 mb-4">
           <p className="font-outfit text-sm text-gray-600">
-            Search results for "<strong>{search}</strong>" - {books.length} books found
+            Search results for "<strong>{search}</strong>" - {books.length}{" "}
+            books found
           </p>
         </div>
       )}
-
       {loading && (
         <div className="flex flex-col items-center justify-center w-full min-h-96">
           <div className="loading loading-spinner loading-lg"></div>
           <p className="mt-4 font-outfit">Searching for books...</p>
         </div>
       )}
-
+      {!hasSearched && (
+        <p className="font-outfit mt-6 text-gray-600 ml-1">What book are you looking for?</p>
+      )}{" "}
       {/* Results */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1 font-outfit w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-3  md:grid-cols-4 lg:grid-cols-8 gap-6 font-outfit">
         {books.map((book) => {
           const isInFavorites = isBookInFavorites(book.id);
-          
+
           return (
-            <div key={book.id} className="border relative border-gray-300 bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow  w-40">
+            <div
+              key={book.id}
+              className="border relative border-gray-300 bg-white overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col w-40"
+            >
               <img
-  src={
-    book.volumeInfo.imageLinks?.thumbnail ||
-    book.volumeInfo.imageLinks?.smallThumbnail ||
-    "/fallback-image.jpg"
-  }
-  alt={book.volumeInfo.title}
-  className="h-60 mb-2 w-full hover:scale-103 transition"
-  onError={(e) => {
-    e.target.src = "/fallback-image.jpg";
-  }}
-/>
+                src={
+                  book.volumeInfo.imageLinks?.thumbnail ||
+                  book.volumeInfo.imageLinks?.smallThumbnail ||
+                  "/fallback-image.jpg"
+                }
+                alt={book.volumeInfo.title}
+                className="h-60 mb-2 w-full text-gray-700 transition"
+                onError={(e) => {
+                  e.target.src = "/fallback-image.jpg";
+                }}
+              />
               <div className="flex flex-col gap-2 p-3">
-                <div className="font-bold text-sm line-clamp-2" title={book.volumeInfo.title}>
+                <div
+                  className="font-bold text-sm line-clamp-2"
+                  title={book.volumeInfo.title}
+                >
                   {book.volumeInfo.title}
                 </div>
-                <p className="font-light text-xs text-gray-600 line-clamp-1" title={book.volumeInfo.authors?.join(', ')}>
+                <p
+                  className="font-light text-xs text-gray-600 line-clamp-1 mb-20"
+                  title={book.volumeInfo.authors?.join(", ")}
+                >
                   {book.volumeInfo.authors?.join(", ") || "Unknown Author"}
                 </p>
-                
               </div>
-              
+
               <div
-                className={`absolute top-2 right-2 rounded-full p-1 text-2xl cursor-pointer transition-all shadow-sm ${
-                  isInFavorites 
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
-                    : 'bg-white text-blue-600 hover:bg-blue-50 hover:scale-110'
+                className={`mt-auto ml-auto mb-2 p-1 text-2xl cursor-pointer transition-all  ${
+                  isInFavorites ? " text-green-600 " : " text-blue-600 "
                 }`}
                 onClick={() => handleAddBook(book)}
-                title={isInFavorites ? 'Already in favorites' : 'Add to favorites'}
+                title={
+                  isInFavorites ? "Already in favorites" : "Add to favorites"
+                }
               >
                 {isInFavorites ? <FaCircleCheck /> : <FaCirclePlus />}
               </div>
@@ -220,7 +230,6 @@ function SearchBooks() {
           );
         })}
       </div>
-
       {hasSearched && !loading && books.length === 0 && (
         <div className="flex flex-col items-center justify-center w-full min-h-96 text-center">
           <div className="text-6xl mb-4">🔍</div>

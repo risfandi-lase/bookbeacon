@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import { fffff } from "./config";
+import { BACKEND_URL } from "./config";
 
 const AuthContext = createContext();
 
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }) => {
     setIsRefreshing(true);
 
     try {
-      const response = await axios.get(`${fffff}/token `, {
+      const response = await axios.get(`${BACKEND_URL}/token `, {
         withCredentials: true, // This is important for sending cookies
       });
 
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await axios.post(
-        `${fffff}/login`,
+        `${BACKEND_URL}/login`,
         {
           user_name: username,
           password: password,
@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
   // Function to logout
   const logout = async () => {
     try {
-      await axios.delete(`${fffff}/logout`, {
+      await axios.delete(`${BACKEND_URL}/logout`, {
         withCredentials: true,
       });
     } catch (error) {

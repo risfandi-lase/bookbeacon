@@ -14,10 +14,10 @@ function Login({ setIsAuthenticated, setUserName }) {
     e.preventDefault();
     setLoading(true);
     setMsg("");
-    
+
     try {
       const result = await login(name, password);
-      
+
       if (result.success) {
         navigate("/");
       } else {
@@ -33,6 +33,12 @@ function Login({ setIsAuthenticated, setUserName }) {
   return (
     <div className="bg-base-200 text-base-content p-8 w-full flex flex-col items-start">
       <h1 className="text-3xl font-[300] font-lexend">Login</h1>
+
+      <div className="font-lexend text-sm text-gray-400 mt-6 font-light">
+        <p>Username: qwer</p>
+        <p>Password: 123</p>
+        <p>or Register instead </p>
+      </div>
 
       <form onSubmit={Auth} action="" className="flex-col flex">
         {msg && <p className="text-error text-sm mt-2">{msg}</p>}
@@ -91,12 +97,14 @@ function Login({ setIsAuthenticated, setUserName }) {
             disabled={loading}
           />
         </label>
-        <button 
+        <button
           type="submit"
-          className={`btn btn-neutral btn-outline w-24 mt-6 font-lexend text-xs font-[500] mx-auto ${loading ? 'loading' : ''}`}
+          className={`btn btn-neutral btn-outline w-24 mt-6 font-lexend text-xs font-[500] mx-auto ${
+            loading ? "loading" : ""
+          }`}
           disabled={loading}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

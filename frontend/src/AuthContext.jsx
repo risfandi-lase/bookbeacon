@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { fffff } from "./config";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -14,14 +15,19 @@ export const useAuth = () => {
 // Helper function to decode JWT token
 const decodeToken = (token) => {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
     return JSON.parse(jsonPayload);
   } catch (error) {
-    console.error('Error decoding token:', error);
+    console.error("Error decoding token:", error);
     return null;
   }
 };
@@ -36,9 +42,9 @@ export const AuthProvider = ({ children }) => {
   const updateUserFromToken = (token) => {
     const decoded = decodeToken(token);
     if (decoded && decoded.user_name) {
-      setUser({ 
+      setUser({
         user_name: decoded.user_name,
-        userId: decoded.userId 
+        userId: decoded.userId,
       });
     }
   };
@@ -48,10 +54,12 @@ export const AuthProvider = ({ children }) => {
     const requestInterceptor = axios.interceptors.request.use(
       (config) => {
         // Only add auth header to our backend API calls
-        if (accessToken && 
-            config.url && 
-            (config.url.includes('localhost:5000') || config.url.startsWith('/')) &&
-            !config.url.includes('/token')) {
+        if (
+          accessToken &&
+          config.url &&
+          config.url.startsWith("/") &&
+          !config.url.includes("/token")
+        ) {
           config.headers.Authorization = `Bearer ${accessToken}`;
         }
         return config;
@@ -72,18 +80,18 @@ export const AuthProvider = ({ children }) => {
       (response) => response,
       async (error) => {
         const originalRequest = error.config;
-        
+
         // Only handle token refresh for our backend API calls
         if (
-          error.response?.status === 401 && 
-          !originalRequest._retry && 
+          error.response?.status === 401 &&
+          !originalRequest._retry &&
           !isRefreshing &&
           originalRequest.url &&
-          (originalRequest.url.includes('localhost:5000') || originalRequest.url.startsWith('/')) &&
-          !originalRequest.url.includes('/token')
+          originalRequest.url.startsWith("/") &&
+          !originalRequest.url.includes("/token")
         ) {
           originalRequest._retry = true;
-          
+
           try {
             const newToken = await refreshAccessToken();
             // Retry the original request with new token
@@ -97,7 +105,7 @@ export const AuthProvider = ({ children }) => {
             return Promise.reject(refreshError);
           }
         }
-        
+
         return Promise.reject(error);
       }
     );
@@ -110,25 +118,25 @@ export const AuthProvider = ({ children }) => {
   // Function to refresh access token
   const refreshAccessToken = async () => {
     if (isRefreshing) {
-      throw new Error('Already refreshing token');
+      throw new Error("Already refreshing token");
     }
 
     setIsRefreshing(true);
-    
+
     try {
-      const response = await axios.get('http://localhost:5000/token', {
-        withCredentials: true // This is important for sending cookies
+      const response = await axios.get(`${fffff}/token `, {
+        withCredentials: true, // This is important for sending cookies
       });
-      
+
       const newAccessToken = response.data.accessToken;
       setAccessToken(newAccessToken);
-      
+
       // Update user information from the new token
       updateUserFromToken(newAccessToken);
-      
+
       return newAccessToken;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error("Token refresh failed:", error);
       // Clear auth state on refresh failure
       setUser(null);
       setAccessToken(null);
@@ -141,25 +149,29 @@ export const AuthProvider = ({ children }) => {
   // Function to login
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:5000/login', {
-        user_name: username,
-        password: password,
-      }, {
-        withCredentials: true // This is important for receiving cookies
-      });
+      const response = await axios.post(
+        `${fffff}/login`,
+        {
+          user_name: username,
+          password: password,
+        },
+        {
+          withCredentials: true, // This is important for receiving cookies
+        }
+      );
 
       const { accessToken } = response.data;
       setAccessToken(accessToken);
-      
+
       // Extract user information from the token instead of using input username
       updateUserFromToken(accessToken);
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Login failed:', error);
-      return { 
-        success: false, 
-        message: error.response?.data?.msg || 'Login failed' 
+      console.error("Login failed:", error);
+      return {
+        success: false,
+        message: error.response?.data?.msg || "Login failed",
       };
     }
   };
@@ -167,11 +179,11 @@ export const AuthProvider = ({ children }) => {
   // Function to logout
   const logout = async () => {
     try {
-      await axios.delete('http://localhost:5000/logout', {
-        withCredentials: true
+      await axios.delete(`${fffff}/logout`, {
+        withCredentials: true,
       });
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setUser(null);
       setAccessToken(null);
@@ -186,7 +198,7 @@ export const AuthProvider = ({ children }) => {
       // User information is now properly set in refreshAccessToken via updateUserFromToken
     } catch (error) {
       // Token refresh failed, user is not authenticated
-      console.log('No valid session found');
+      console.log("No valid session found");
       setUser(null);
       setAccessToken(null);
     } finally {
@@ -206,8 +218,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     refreshAccessToken,
-    isAuthenticated: !!user && !!accessToken
+    isAuthenticated: !!user && !!accessToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};

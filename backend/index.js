@@ -17,8 +17,10 @@ try {
 }
 
 app.use(cors({
-  origin: '*',   // <– list or function, not '*'
-                 // <– tells cors to add the header
+  origin: [
+    'http://localhost:5173',
+    'https://bookbeacon.vercel.app'
+  ]
 }));
 
 

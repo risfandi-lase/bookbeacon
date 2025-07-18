@@ -18,7 +18,7 @@ try {
 
 app.use(cors({
   origin: '*',   // <– list or function, not '*'
-  credentials: true                  // <– tells cors to add the header
+                 // <– tells cors to add the header
 }));
 
 

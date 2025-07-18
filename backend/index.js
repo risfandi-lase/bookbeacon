@@ -16,10 +16,11 @@ try {
   console.error(error);
 }
 
-app.use(cors({
-  origin: 'http://localhost:5173',   // <– list or function, not '*'
-  credentials: true                  // <– tells cors to add the header
-}));
+// app.use(cors({
+//   origin: 'http://localhost:5173',   // <– list or function, not '*'
+//   credentials: true                  // <– tells cors to add the header
+// }));
+app.use(cors());
 
 
 app.use(cookieParser());
